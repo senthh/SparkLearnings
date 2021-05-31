@@ -1,0 +1,46 @@
+Spark-shell :
+
+"${SPARK_HOME}"/bin/spark-submit --class org.apache.spark.repl.Main --name "Spark shell" "$@"
+
+Spark-submit :
+
+exec "${SPARK_HOME}"/bin/spark-class org.apache.spark.deploy.SparkSubmit "$@"
+
+start spark thrift server :
+
+CLASS="org.apache.spark.sql.hive.thriftserver.HiveThriftServer2"
+
+export SUBMIT_USAGE_FUNCTION=usage
+
+exec "${SPARK_HOME}"/sbin/spark-daemon.sh submit $CLASS 1 --name "Thrift JDBC/ODBC Server" "$@"
+
+
+start spark history server :
+
+CLASS="org.apache.spark.deploy.history.HistoryServer"
+exec "${SPARK_HOME}/sbin"/spark-daemon.sh start $CLASS 1 "$@"
+
+spark-class :
+
+# Find the java binary
+if [ -n "${JAVA_HOME}" ]; then
+  RUNNER="${JAVA_HOME}/bin/java"
+else
+  if [ "$(command -v java)" ]; then
+    RUNNER="java"
+  else
+    echo "JAVA_HOME is not set" >&2
+    exit 1
+  fi
+fi
+
+"$RUNNER" -Xmx128m $SPARK_LAUNCHER_OPTS -cp "$LAUNCH_CLASSPATH" org.apache.spark.launcher.Main "$@"
+
+spark-sql :
+
+export _SPARK_CMD_USAGE="Usage: ./bin/spark-sql [options] [cli option]"
+exec "${SPARK_HOME}"/bin/spark-submit --class org.apache.spark.sql.hive.thriftserver.SparkSQLCLIDriver "$@"
+
+
+spark-daemon.sh :
+
